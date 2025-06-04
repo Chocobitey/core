@@ -15,7 +15,7 @@ def sh(cmd)
 end
 
 def download_package(user, repo, package, version)
-  url = "#{GHCR_BASE}/#{user}/#{repo}/#{package}/#{version}.choco.pkg"
+  url = "#{GHCR_BASE}/#{user}/#{repo}/#{package}/#{package}-#{version}.choco.pkg"
   dest = "/tmp/#{package}-#{version}.choco.pkg"
   puts "📦 Downloading #{url}..."
   sh("curl --progress-bar -L #{url} -o #{dest}")
