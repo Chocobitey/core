@@ -26,5 +26,5 @@ jobs:
       - name: 🥯 Run Bitzy on Buns
         uses: Chocobitey/buns@v1.0.1
         with:
-          name: your-package-name
+          name: ${{ vars.NAME }}
           version: ${{ steps.setver.outputs.version }}
