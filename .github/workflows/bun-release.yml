@@ -1,4 +1,4 @@
-name: 🥯 Release Bun
+name: 🥯 Bun Release
 
 on:
   release:
