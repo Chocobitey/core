@@ -1,12 +1,16 @@
-name: Package and Publish Bitey
+name: 🥯 Bitzy on Buns (Release)
 
 on:
   release:
     types: [published]
 
+env:
+  NAME: bitey
+  REPO: Chocobitey/core
+
 jobs:
   package-and-publish:
-    name: Create .choco.pkg, Upload to GHCR and Release
+    name: 🥯 Release Bun
     runs-on: ubuntu-latest
 
     permissions:
@@ -23,12 +27,12 @@ jobs:
       - name: 📦 Create .choco.pkg
         run: |
           mkdir -p release
-          tar -czf "release/bitey-${VERSION}.choco.pkg" *
+          tar -czf "release/${NAME}-${VERSION}.choco.pkg" *
 
       - name: 📤 Upload .choco.pkg to GitHub Release
         uses: softprops/action-gh-release@v1
         with:
-          files: release/bitey-${{ env.VERSION }}.choco.pkg
+          files: release/${{ env.NAME }}-${{ env.VERSION }}.choco.pkg
 
       - name: 🔐 Log in to GitHub Container Registry
         uses: docker/login-action@v3
@@ -40,10 +44,10 @@ jobs:
       - name: 🚀 Upload to ghcr.io
         run: |
           echo "::group::Pushing to ghcr.io"
-          echo "Uploading bitey-${VERSION}.choco.pkg"
+          echo "Uploading $NAME-$VERSION.choco.pkg"
           curl -X PUT \
             -H "Authorization: Bearer ${{ secrets.GH_TOKEN }}" \
             -H "Content-Type: application/gzip" \
-            --data-binary "@release/bitey-${VERSION}.choco.pkg" \
-            "https://ghcr.io/v2/Chocobitey/core/bitey/bitey-${VERSION}.choco.pkg"
+            --data-binary "@release/${NAME}-${VERSION}.choco.pkg" \
+            "https://ghcr.io/v2/${REPO}/${NAME}/${NAME}-${VERSION}.choco.pkg"
           echo "::endgroup::"
