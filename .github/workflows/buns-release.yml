@@ -1,4 +1,4 @@
-name: 🥯 Bitzy on Buns (Release)
+name: 🥯 Release Bun
 
 on:
   release:
