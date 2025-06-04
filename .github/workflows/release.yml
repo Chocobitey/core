@@ -1,0 +1,49 @@
+name: Package and Publish Bitey
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  package-and-publish:
+    name: Create .choco.pkg, Upload to GHCR and Release
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write       # Needed for uploading to Releases
+      packages: write       # Needed for GHCR
+
+    steps:
+      - name: 🧾 Checkout source
+        uses: actions/checkout@v3
+
+      - name: 🏷️ Set release version
+        run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_ENV
+
+      - name: 📦 Create .choco.pkg
+        run: |
+          mkdir -p release
+          tar -czf "release/${VERSION}.choco.pkg" *
+
+      - name: 📤 Upload .choco.pkg to GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: release/*.choco.pkg
+
+      - name: 🔐 Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GH_TOKEN }}
+
+      - name: 🚀 Upload to ghcr.io
+        run: |
+          echo "::group::Pushing to ghcr.io"
+          echo "Uploading ${VERSION}.choco.pkg"
+          curl -X PUT \
+            -H "Authorization: Bearer ${{ secrets.GH_TOKEN }}" \
+            -H "Content-Type: application/gzip" \
+            --data-binary "@release/${VERSION}.choco.pkg" \
+            "https://ghcr.io/v2/${{ github.repository }}/blobs/uploads/?name=${VERSION}.choco.pkg"
+          echo "::endgroup::"
