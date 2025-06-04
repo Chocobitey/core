@@ -46,7 +46,6 @@ def fetch_latest_version(user, repo, package)
   abort("❌ No versions found for #{package}") if tags.empty?
 
   latest = tags.sort_by { |v| Gem::Version.new(v.gsub(/[^\d.]/, '')) rescue v }.last
-  puts "📌 Latest version: #{latest}"
   latest
 end
 
