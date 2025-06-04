@@ -50,7 +50,7 @@ jobs:
           name: choco-pkg
           path: release
 
-      - name: 📤 Upload .choco.pkg to GitHub Release
+      - name: 📤 Upload Package to GitHub Release
         uses: softprops/action-gh-release@v1
         with:
           files: release/${{ vars.NAME }}-${{ needs.build.outputs.version }}.choco.pkg
