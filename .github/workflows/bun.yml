@@ -24,7 +24,7 @@ jobs:
           echo "version=$VERSION" >> $GITHUB_OUTPUT
 
       - name: 🥯 Run Bitzy on Buns
-        uses: Chocobitey/buns@v1
+        uses: Chocobitey/buns@v1.0.1
         with:
           name: your-package-name
           version: ${{ steps.setver.outputs.version }}
