@@ -1,0 +1,17 @@
+ThreadPack:
+  name: bitey
+  version: 1.0.2
+  description: "A fast package manager written in Ruby."
+  license: MIT
+  maintainer: "Klydra <nogeese@leon8326.org>"
+
+  source:
+    type: blob
+    url: https://ghcr.io/v2/Chocobitey/core/bitey/bitey-1.0.2.choco.pkg
+    format: choco.pkg
+    hash: sha256:PUT_SHA256_HERE
+
+  install:
+    command: |
+      tar -xzf bitey-1.0.2.choco.pkg -C /opt/bitey
+      ln -sf /opt/bitey/bin/bitey /usr/local/bin/bitey
