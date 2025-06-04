@@ -13,23 +13,30 @@ jobs:
     name: 🏗️ Build
     runs-on: ubuntu-latest
 
+    outputs:
+      version: ${{ steps.setver.outputs.version }}
+
     steps:
       - name: 🧾 Checkout source
         uses: actions/checkout@v3
 
       - name: 🏷️ Set release version
-        run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_ENV
+        id: setver
+        run: |
+          VERSION="${GITHUB_REF#refs/tags/v}"
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
 
       - name: 📦 Create .choco.pkg
         run: |
           mkdir -p release
-          tar -czf "release/${NAME}-${VERSION}.choco.pkg" *
+          tar -czf "release/${{ vars.NAME }}-${VERSION}.choco.pkg" *
 
       - name: 📤 Upload build artifact
         uses: actions/upload-artifact@v4
         with:
           name: choco-pkg
-          path: release/${{ env.NAME }}-${{ env.VERSION }}.choco.pkg
+          path: release/${{ vars.NAME }}-${{ steps.setver.outputs.version }}.choco.pkg
 
   release:
     name: 📤 Release
@@ -46,12 +53,12 @@ jobs:
       - name: 📤 Upload .choco.pkg to GitHub Release
         uses: softprops/action-gh-release@v1
         with:
-          files: release/${{ env.NAME }}-${{ env.VERSION }}.choco.pkg
+          files: release/${{ vars.NAME }}-${{ needs.build.outputs.version }}.choco.pkg
 
   launch:
     name: 🚀 Launch
     runs-on: ubuntu-latest
-    needs: release
+    needs: build
 
     steps:
       - name: 🧾 Download build artifact
@@ -68,6 +75,10 @@ jobs:
           password: ${{ secrets.GH_TOKEN }}
 
       - name: 🚀 Upload to ghcr.io
+        env:
+          NAME: ${{ vars.NAME }}
+          REPO: ${{ vars.REPO }}
+          VERSION: ${{ needs.build.outputs.version }}
         run: |
           echo "::group::Pushing to ghcr.io"
           echo "Uploading $NAME-$VERSION.choco.pkg"
