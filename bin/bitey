@@ -1,11 +1,15 @@
 #!/usr/bin/env ruby
 require 'fileutils'
 require 'open3'
+require 'json'
+require 'net/http'
+require 'uri'
 
 # --- Config ---
 BITEY_ROOT = "/opt/bitey"
 PROGRAMS_DIR = "#{BITEY_ROOT}/programs"
 GHCR_BASE = "https://ghcr.io/v2"
+PACKAGE_INDEX_BASE = "https://raw.githubusercontent.com/Chocobitey/db/main/docs"
 
 # --- Helpers ---
 
@@ -30,13 +34,47 @@ def install_package(archive, package)
   sh("chmod +x #{target}/bin/*")
 end
 
+def fetch_latest_version(user, repo, package)
+  url = URI("#{GHCR_BASE}/#{user}/#{repo}/#{package}/tags/list")
+  res = Net::HTTP.get_response(url)
+
+  unless res.is_a?(Net::HTTPSuccess)
+    abort("❌ Failed to fetch tags: #{res.code} #{res.message}")
+  end
+
+  tags = JSON.parse(res.body)["tags"] || []
+  abort("❌ No versions found for #{package}") if tags.empty?
+
+  latest = tags.sort_by { |v| Gem::Version.new(v.gsub(/[^\d.]/, '')) rescue v }.last
+  puts "📌 Latest version: #{latest}"
+  latest
+end
+
+def fetch_package_metadata(name)
+  url = URI("#{PACKAGE_INDEX_BASE}/#{name}.json")
+
+  res = Net::HTTP.get_response(url)
+  unless res.is_a?(Net::HTTPSuccess)
+    abort("❌ Package '#{name}' not found.")
+  end
+
+  JSON.parse(res.body)
+end
+
+
 # --- Main Logic ---
 
 if ARGV[0] == "install" && ARGV[1]
-  pkg = ARGV[1]            # e.g., "dev123/myrepo/hello"
-  version = ARGV[2] || "1.0.0"
-  user, repo, name = pkg.split("/")
-  abort("❌ Invalid format. Use user/repo/name") unless name
+  pkgname = ARGV[1]        # e.g., "hello"
+  version = ARGV[2]
+
+  metadata = fetch_package_metadata(pkgname)
+
+  user = metadata["user"]
+  repo = metadata["repo"]
+  name = metadata["name"] || pkgname
+
+  version ||= fetch_latest_version(user, repo, name)
 
   puts "🐶 Installing #{name} v#{version}..."
   FileUtils.mkdir_p(PROGRAMS_DIR)
