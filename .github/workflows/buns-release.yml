@@ -4,14 +4,14 @@ on:
   release:
     types: [published]
 
-jobs:
-  package-and-publish:
-    name: 🥯 Release Bun
-    runs-on: ubuntu-latest
+permissions:
+  contents: write
+  packages: write
 
-    permissions:
-      contents: write       # Needed for uploading to Releases
-      packages: write       # Needed for GHCR
+jobs:
+  build:
+    name: 🏗️ Build
+    runs-on: ubuntu-latest
 
     steps:
       - name: 🧾 Checkout source
@@ -25,10 +25,40 @@ jobs:
           mkdir -p release
           tar -czf "release/${NAME}-${VERSION}.choco.pkg" *
 
+      - name: 📤 Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: choco-pkg
+          path: release/${{ env.NAME }}-${{ env.VERSION }}.choco.pkg
+
+  release:
+    name: 📤 Release
+    runs-on: ubuntu-latest
+    needs: build
+
+    steps:
+      - name: 🧾 Download build artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: choco-pkg
+          path: release
+
       - name: 📤 Upload .choco.pkg to GitHub Release
         uses: softprops/action-gh-release@v1
         with:
           files: release/${{ env.NAME }}-${{ env.VERSION }}.choco.pkg
+
+  launch:
+    name: 🚀 Launch
+    runs-on: ubuntu-latest
+    needs: release
+
+    steps:
+      - name: 🧾 Download build artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: choco-pkg
+          path: release
 
       - name: 🔐 Log in to GitHub Container Registry
         uses: docker/login-action@v3
