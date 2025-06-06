@@ -8,7 +8,6 @@ source:
   type: blob
   url: https://github.com/Chocobitey/core/releases/download/v{version}/bitey-{version}.choco.pkg
   format: choco.pkg
-  hash: sha256:fb83f24b6d7a413dffe724dc7c1b27812a8fa5e645e3eda418d4f01de7008b1d
 
 install:
   command: |
