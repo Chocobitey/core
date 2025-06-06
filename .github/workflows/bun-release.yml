@@ -1,9 +1,4 @@
 name: 🥯 Bun Release
-description: "Release a Bitey package automaticly."
-author: "Chocobitey"
-
-icon: arrow-up-circle
-color: blue
 
 on:
   release:
